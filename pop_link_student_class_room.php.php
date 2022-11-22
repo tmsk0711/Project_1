@@ -81,8 +81,6 @@ $Sql = "
 		from ($ViewTable) V 
 		order by V.OldPangramLinkCenterDeviceGroupID desc, V.PangramLinkCenterDeviceDetailRegDateTime desc";// limit $StartRowNum, $PageListNum";
 
-
-
 $Stmt = $DbConn->prepare($Sql);
 $Stmt->execute();
 $Stmt->setFetchMode(PDO::FETCH_ASSOC);
@@ -129,7 +127,6 @@ $Stmt->setFetchMode(PDO::FETCH_ASSOC);
 			<?
 			$ListCount = 1;
 			
-			
 			while($Row = $Stmt->fetch()) {
 
 				$ListNumber = $TotalCount - ($ListCount-1);
@@ -142,11 +139,6 @@ $Stmt->setFetchMode(PDO::FETCH_ASSOC);
 				$OldPangramLinkCenterDeviceID = $Row["OldPangramLinkCenterDeviceID"];
 
 				$MemberRegDateTime = str_replace("-",".", substr($MemberRegDateTime, 0, 10));
-
-				
-				
-				
-				
 			?>
             <tr>
                 <td><?=$ListNumber?></td>
@@ -158,40 +150,35 @@ $Stmt->setFetchMode(PDO::FETCH_ASSOC);
                 </td> -->
                 <td><?=$MemberName?></td>
                 <td><?=$MemberLoginID?></td>
-
 				<td>
 					<?// sun 2022 11-21?>
-					
-						<input type="hidden" id="$MemberID" name="MemberID[]" value="<?=$MemberID?>" index="<?=$ListNumber?>">
+					<input type="hidden" id="$MemberID" name="MemberID[]" value="<?=$MemberID?>" index="<?=$ListNumber?>">
 
-						<select id="PangramLinkCenterDeviceID_<?=$MemberID?>" name="PangramLinkCenterDeviceName[]"  class="search_select" style="width:;" onchange="OverLapCheck(<?=$MemberID?>);">
-							<option value="-1">선택 하지 않음</option>
-							<?
-							$Sql2 = "SELECT
-							*
-							FROM PangramLinkCenterDevicies A 
-							WHERE A.PangramLinkCenterDeviceCategoryID=:PangramLinkCenterDeviceCategoryID AND A.PangramLinkCenterDeviceState <>0 order by A.PangramLinkCenterDeviceOrder ASC";
-							$Stmt2 = $DbConn->prepare($Sql2);
-							$Stmt2->bindParam(':PangramLinkCenterDeviceCategoryID', $PangramLinkCenterDeviceCategoryID);
-							$Stmt2->execute();
-							$Stmt2->setFetchMode(PDO::FETCH_ASSOC);
-							while($Row2 = $Stmt2->fetch()) {
-								$PangramLinkCenterDeviceID = $Row2["PangramLinkCenterDeviceID"];
-								$PangramLinkCenterDeviceDescription = $Row2["PangramLinkCenterDeviceDescription"];
-							?>
-							<option value="<?=$PangramLinkCenterDeviceID?>" <?if ($PangramLinkCenterDeviceID==$OldPangramLinkCenterDeviceID){?>selected<?}?>><?=$PangramLinkCenterDeviceDescription?></option>
-					
-					<?
-					}
-					
-					$Stmt2 = null;
-					?>
-				</select>
+					<select id="PangramLinkCenterDeviceID_<?=$MemberID?>" name="PangramLinkCenterDeviceName[]"  class="search_select" style="width:;" onchange="OverLapCheck(<?=$MemberID?>);">
+						<option value="-1">선택 하지 않음</option>
+						<?
+						$Sql2 = "SELECT
+						*
+						FROM PangramLinkCenterDevicies A 
+						WHERE A.PangramLinkCenterDeviceCategoryID=:PangramLinkCenterDeviceCategoryID AND A.PangramLinkCenterDeviceState <>0 order by A.PangramLinkCenterDeviceOrder ASC";
+						$Stmt2 = $DbConn->prepare($Sql2);
+						$Stmt2->bindParam(':PangramLinkCenterDeviceCategoryID', $PangramLinkCenterDeviceCategoryID);
+						$Stmt2->execute();
+						$Stmt2->setFetchMode(PDO::FETCH_ASSOC);
+						while($Row2 = $Stmt2->fetch()) {
+							$PangramLinkCenterDeviceID = $Row2["PangramLinkCenterDeviceID"];
+							$PangramLinkCenterDeviceDescription = $Row2["PangramLinkCenterDeviceDescription"];
+						?>
+						<option value="<?=$PangramLinkCenterDeviceID?>" <?if ($PangramLinkCenterDeviceID==$OldPangramLinkCenterDeviceID){?>selected<?}?>><?=$PangramLinkCenterDeviceDescription?></option>
+						<?
+						}
+						$Stmt2 = null;?>
 
+					</select>
 				</td>
-
 				<td><?=$MemberRegDateTime?></td>
             </tr>
+
 			<?
 				$ListCount++;
 			}
@@ -215,23 +202,15 @@ let Arr_DeviceID_MemberID = "";
 // cheked 확인
 // let MemberChecked = $("input:checkbox[name='MemberID[]']:checked");
 let MemberChecked = $("input:hidden[name='MemberID[]']");
-
 let length = MemberChecked.length;
-
-
 
 function FormSubmit(){
 	for(i = 0; i <length; i++){
-	
 		MemberID = MemberChecked[i].value;
 		let PangramLinkCenterDeviceID = $('#PangramLinkCenterDeviceID_'+MemberID+' option:selected').val();
 		Arr_DeviceID_MemberID = Arr_DeviceID_MemberID + PangramLinkCenterDeviceID +','+MemberID+'|'
-	
 	}
-	console.log(Arr_DeviceID_MemberID);
-	
 	url = "./ajax_set_link_student_class_room.php";
-	
 	$.ajax(url, {
 		data: {
 			PangramLinkCenterDeviceGroupID : PangramLinkCenterDeviceGroupID,
@@ -254,8 +233,7 @@ function FormSubmit(){
                     	console.log(errorThrown);
 		}
 	});	
-
-}
+}//FormSubmit()
 
 /* 리스트에서 자신을 제외한 CenterID 중복 체크*/
 function OverLapCheck(LncMemberID){
@@ -278,8 +256,6 @@ function OverLapCheck(LncMemberID){
 		}
 	}
 }// OverLapCheck()
-
-	
 
 
 function SearchSubmit(){
