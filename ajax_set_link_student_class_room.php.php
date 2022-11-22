@@ -10,20 +10,25 @@ $MemberLevelID = $_LINK_MEMBER_LEVEL_ID_;
 
 
 $PangramLinkCenterDeviceGroupID = isset($_REQUEST["PangramLinkCenterDeviceGroupID"]) ? $_REQUEST["PangramLinkCenterDeviceGroupID"] : "";
-$ArrCheckedData = isset($_REQUEST["ArrCheckedData"]) ? $_REQUEST["ArrCheckedData"] : "";
+$ArrData = isset($_REQUEST["Arr_DeviceID_MemberID"]) ? $_REQUEST["Arr_DeviceID_MemberID"] : "";
 
-$ArrMemberDeviceID = explode("|", $ArrCheckedData);
+$explodeArrData = explode("|", $ArrData);
 
-for ($ii=0; $ii<=count($ArrMemberDeviceID)-2; $ii++){
+for ($ii=0; $ii<=count($explodeArrData)-2; $ii++){
 
-	$ArrArrMemberID = explode(",", $ArrMemberDeviceID[$ii]);
+	$ArrMemberDeviceID = explode(",", $explodeArrData[$ii]);
 
-	$PangramLinkCenterDeviceID = $ArrArrMemberID[0];
-	$MemberID = $ArrArrMemberID[1];
-
+	$PangramLinkCenterDeviceID = $ArrMemberDeviceID[0];
+	$MemberID = $ArrMemberDeviceID[1];
 	
+	// echo "DeviceID : ".$PangramLinkCenterDeviceID." MemberID : ".$MemberID."\n";
 	
-	$Sql2 = "select A.MemberID as OldMemberID from PangramLinkCenterDeviceDetails A where MemberID=$MemberID and PangramLinkCenterDeviceGroupID=$PangramLinkCenterDeviceGroupID ";
+	// Details 테이블에 값 체크
+	$Sql2 = "SELECT
+			A.MemberID as OldMemberID
+			, A.PangramLinkCenterDeviceID AS OldDeviceID
+		from PangramLinkCenterDeviceDetails A 
+		where MemberID = $MemberID and PangramLinkCenterDeviceGroupID = $PangramLinkCenterDeviceGroupID ";
 	
 	$Stmt2 = $DbConn->prepare($Sql2);
 	$Stmt2->execute();
@@ -31,9 +36,11 @@ for ($ii=0; $ii<=count($ArrMemberDeviceID)-2; $ii++){
 	$Row2 = $Stmt2->fetch();
 	$Stmt2 = null;
 	$OldMemberID = $Row2["OldMemberID"];
+	$OldDeviceID = $Row2["OldDeviceID"];
 
-
-	if ($MemberID != "" && $PangramLinkCenterDeviceID != ""){//등록
+	// 등록
+	// DevcieID 가 0 이면 선택 되지 않았다고 판단, 
+	if ($MemberID != "" && $PangramLinkCenterDeviceID != -1){
 
 		$Sql3 = "select ifnull(Max(PangramLinkCenterDeviceDetailOrder),0) AS PangramLinkCenterDeviceDetailOrder from PangramLinkCenterDeviceDetails ";
 		$Stmt = $DbConn->prepare($Sql3);
@@ -43,6 +50,7 @@ for ($ii=0; $ii<=count($ArrMemberDeviceID)-2; $ii++){
 		$Stmt = null;
 
 		$PangramLinkCenterDeviceDetailOrder = $Row["PangramLinkCenterDeviceDetailOrder"]+10;
+
 		if (!$OldMemberID){
 
 			$Sql = "insert into PangramLinkCenterDeviceDetails (
@@ -71,19 +79,35 @@ for ($ii=0; $ii<=count($ArrMemberDeviceID)-2; $ii++){
 			$Stmt->bindParam(':PangramLinkCenterDeviceDetailOrder', $PangramLinkCenterDeviceDetailOrder);
 			$Stmt->execute();
 			$Stmt = null;
-		}
-	}else{//삭제
-		if ($OldMemberID){
 
-			$Sql = "delete from PangramLinkCenterDeviceDetails where  MemberID=$MemberID and PangramLinkCenterDeviceGroupID=$PangramLinkCenterDeviceGroupID";
+		}else if($PangramLinkCenterDeviceID != $OldDeviceID){ 
+			/* update
+			선택한 디바이스ID와 DB에 저장된 디바이스 ID가 다르면 */
+			$Sql = " UPDATE 
+					PangramLinkCenterDeviceDetails A
+				SET
+					A.PangramLinkCenterDeviceID =:PangramLinkCenterDeviceID
+					,A.PangramLinkCenterDeviceDetailModiDateTime = NOW()
+				WHERE MemberID =:MemberID";
+		
 			$Stmt = $DbConn->prepare($Sql);
+			$Stmt->bindParam(':PangramLinkCenterDeviceID', $PangramLinkCenterDeviceID);
+			$Stmt->bindParam(':MemberID', $MemberID);
 			$Stmt->execute();
 			$Stmt = null;
 
 		}
+
+
+	}else if($MemberID==$OldMemberID && $PangramLinkCenterDeviceID == -1){
+		//삭제
+		$Sql = "delete from PangramLinkCenterDeviceDetails where MemberID=$MemberID and PangramLinkCenterDeviceGroupID=$PangramLinkCenterDeviceGroupID";
+		$Stmt = $DbConn->prepare($Sql);
+		$Stmt->execute();
+		$Stmt = null;
 	}
 
-}
+} // for
 
 
 
