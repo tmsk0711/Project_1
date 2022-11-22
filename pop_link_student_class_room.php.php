@@ -162,9 +162,9 @@ $Stmt->setFetchMode(PDO::FETCH_ASSOC);
 				<td>
 					<?// sun 2022 11-21?>
 					
-						<input type="hidden" id="$MemberID" name="MemberID[]" value="<?=$MemberID?>">
+						<input type="hidden" id="$MemberID" name="MemberID[]" value="<?=$MemberID?>" index="<?=$ListNumber?>">
 
-						<select id="PangramLinkCenterDeviceID_<?=$MemberID?>" name="PangramLinkCenterDeviceName[]"  class="search_select" style="width:;" onchange="CheckedBox();">
+						<select id="PangramLinkCenterDeviceID_<?=$MemberID?>" name="PangramLinkCenterDeviceName[]"  class="search_select" style="width:;" onchange="OverLapCheck(<?=$MemberID?>);">
 							<option value="-1">선택 하지 않음</option>
 							<?
 							$Sql2 = "SELECT
@@ -209,15 +209,14 @@ $Stmt->setFetchMode(PDO::FETCH_ASSOC);
 <script language="javascript">
 
 // sun 2022.11.21
-var PangramLinkCenterDeviceGroupID = "<?=$PangramLinkCenterDeviceGroupID?>";
-var Arr_DeviceID_MemberID = "";
+let PangramLinkCenterDeviceGroupID = "<?=$PangramLinkCenterDeviceGroupID?>";
+let Arr_DeviceID_MemberID = "";
 
 // cheked 확인
-// var MemberChecked = $("input:checkbox[name='MemberID[]']:checked");
-var MemberChecked = $("input:hidden[name='MemberID[]']");
+// let MemberChecked = $("input:checkbox[name='MemberID[]']:checked");
+let MemberChecked = $("input:hidden[name='MemberID[]']");
 
-var length = MemberChecked.length;
-console.log("length : "+length);
+let length = MemberChecked.length;
 
 
 
@@ -225,7 +224,7 @@ function FormSubmit(){
 	for(i = 0; i <length; i++){
 	
 		MemberID = MemberChecked[i].value;
-		var PangramLinkCenterDeviceID = $('#PangramLinkCenterDeviceID_'+MemberID+' option:selected').val();
+		let PangramLinkCenterDeviceID = $('#PangramLinkCenterDeviceID_'+MemberID+' option:selected').val();
 		Arr_DeviceID_MemberID = Arr_DeviceID_MemberID + PangramLinkCenterDeviceID +','+MemberID+'|'
 	
 	}
@@ -258,24 +257,29 @@ function FormSubmit(){
 
 }
 
-
-function CheckedBox(){
+/* 리스트에서 자신을 제외한 CenterID 중복 체크*/
+function OverLapCheck(LncMemberID){
+	let LncPangramLinkCenterDeviceID = $('#PangramLinkCenterDeviceID_'+LncMemberID+' option:selected').val(); 
 	
+	if(LncPangramLinkCenterDeviceID != -1){
+		for(i=0; i<length; i++){
+			MemberID = MemberChecked[i].value;
+			let PangramLinkCenterDeviceID = $('#PangramLinkCenterDeviceID_'+MemberID+' option:selected').val();
 
+			if(MemberID != LncMemberID && PangramLinkCenterDeviceID == LncPangramLinkCenterDeviceID){
+				$.confirm({
+					title: "경고",
+					content: "같은 기기를 선택 할 수 없습니다.",
+				});
 
-}
-	// if (obj.value==""){
+				$('#PangramLinkCenterDeviceID_'+LncMemberID).val(-1);
+				$('#PangramLinkCenterDeviceID_'+LncMemberID).focus();
+			}
+		}
+	}
+}// OverLapCheck()
 
-	// 	$.alert({title: "안내", content: "그룹 명을 입력하세요."});
-	// 	obj.focus();
-	// 	return;
-	// }
-
-
-
-
-
-
+	
 
 
 function SearchSubmit(){
